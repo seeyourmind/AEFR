@@ -59,16 +59,6 @@ class Model(nn.Module):
         else:
             return mu
 
-    def intra_mixup(self, mui, logvari, mua):
-        # intra-Mixup
-        alpha = 0.2
-        logvara = torch.ones_like(mua)
-        lam = np.random.beta(alpha, alpha)
-        mu_mix = lam*mui + (1-lam)*mua
-        logvar_mix = torch.log(lam**2*torch.exp(logvari) + (1-lam)**2*torch.exp(logvara))
-        z_from_mix = self.reparameterize(mu_mix, logvar_mix)
-        return z_from_mix
-
     def forward(self, img, att):
         # encoder inference
         mu_img, logvar_img = self.encoder['resnet_features'](img)
@@ -78,7 +68,6 @@ class Model(nn.Module):
         z_from_att = self.reparameterize(mu_att, torch.ones_like(mu_att))
         
         z_from_mix = self.reparameterize(mu_att, logvar_img)
-        # z_from_mix = self.intra_mixup(mu_img, logvar_img, mu_att)
 
         # decoder inference
         img_from_img = self.decoder(z_from_img)
